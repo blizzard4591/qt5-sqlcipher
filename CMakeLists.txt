@@ -52,11 +52,11 @@ if (Qt5Sql_FOUND)
 	set(URL_CPP "https://raw.githubusercontent.com/qt/qtbase/v${Qt5Sql_VERSION}/${DOWNLOAD_PATH}/qsql_sqlite.cpp")
 	message(STATUS "URL = ${URL_HEADER}")
 
-	file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/qt-private-from-git-version-${Qt5Sql_VERSION}")
+	file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/qt-private-from-git-version-${Qt5Sql_VERSION}/qt-private")
 	include_directories("${CMAKE_BINARY_DIR}/qt-private-from-git-version-${Qt5Sql_VERSION}")
 
-	file(DOWNLOAD "${URL_HEADER}" "${CMAKE_BINARY_DIR}/qt-private-from-git-version-${Qt5Sql_VERSION}/qsql_sqlite_p.h" STATUS STATUS_HEADER_LIST TLS_VERIFY on LOG LOG_HEADER)
-	file(DOWNLOAD "${URL_CPP}" "${CMAKE_BINARY_DIR}/qt-private-from-git-version-${Qt5Sql_VERSION}/qsql_sqlite.cpp" STATUS STATUS_CPP_LIST TLS_VERIFY on LOG LOG_CPP)
+	file(DOWNLOAD "${URL_HEADER}" "${CMAKE_BINARY_DIR}/qt-private-from-git-version-${Qt5Sql_VERSION}/qt-private/qsql_sqlite_p.h" STATUS STATUS_HEADER_LIST TLS_VERIFY on LOG LOG_HEADER)
+	file(DOWNLOAD "${URL_CPP}" "${CMAKE_BINARY_DIR}/qt-private-from-git-version-${Qt5Sql_VERSION}/qt-private/qsql_sqlite.cpp" STATUS STATUS_CPP_LIST TLS_VERIFY on LOG LOG_CPP)
 
 	list(GET STATUS_HEADER_LIST 0 STATUS_HEADER)
 	list(GET STATUS_CPP_LIST 0 STATUS_CPP)
@@ -71,7 +71,7 @@ endif()
 
 add_library(qsqlcipher ${LIBTYPE}
     smain.cpp
-    "${CMAKE_BINARY_DIR}/qt-private-from-git-version-${Qt5Sql_VERSION}/qsql_sqlite.cpp"
+    "${CMAKE_BINARY_DIR}/qt-private-from-git-version-${Qt5Sql_VERSION}/qt-private/qsql_sqlite.cpp"
 )
 
 if (WIN32)
