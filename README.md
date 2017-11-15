@@ -27,6 +27,10 @@ instead of SQLite.
     - SQLCipher 3.2.0
     - Also requires ``qtbase5-private-dev`` for Qt's private headers.
 
+- Windows 7 - 10
+
+    - Qt 5.9.2
+    - hacked together
 
 ## Deployment
 
