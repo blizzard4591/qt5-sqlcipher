@@ -10,89 +10,93 @@
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication app(argc, argv);
+	QCoreApplication app(argc, argv);
 
-    for (const auto& driver : QSqlDatabase::drivers())
-        qDebug() << driver;
+	for (const auto& driver : QSqlDatabase::drivers()) {
+		qDebug() << "Available QSqlDatabase driver: " << driver;
+	}
 
-    Q_ASSERT(QSqlDatabase::isDriverAvailable("QSQLITE")); // from Qt
-    Q_ASSERT(QSqlDatabase::isDriverAvailable("QSQLCIPHER")); // from our plugin
+	Q_ASSERT(QSqlDatabase::isDriverAvailable("QSQLITE")); // from Qt
+	Q_ASSERT(QSqlDatabase::isDriverAvailable("QSQLCIPHER")); // from our plugin
 
-    QTemporaryDir tmp;
-    Q_ASSERT(tmp.isValid());
+	QTemporaryDir tmp;
+	Q_ASSERT(tmp.isValid());
 
-    auto withDB = [&](const char *driver, auto fn) {
-        QString path = QDir(tmp.path()).absoluteFilePath(QString(driver) + ".db");
-        {
-            QSqlDatabase db = QSqlDatabase::addDatabase(driver, "db");
-            db.setDatabaseName(path);
-            Q_ASSERT(db.open());
-            fn(db);
-        }
-        QSqlDatabase::removeDatabase("db");
-    };
+	auto withDB = [&](const char *driver, auto fn) {
+		QString path = QDir(tmp.path()).absoluteFilePath(QString(driver) + ".db");
+		{
+			QSqlDatabase db = QSqlDatabase::addDatabase(driver, "db");
+			db.setDatabaseName(path);
+			Q_ASSERT(db.open());
+			fn(db);
+		}
+		QSqlDatabase::removeDatabase("db");
+	};
 
-    // QSQLITE
-    {
+	// QSQLITE
+	{
 		std::cout << "Running Task 1..." << std::endl;
-        // Create a SQLite db
-        withDB("QSQLITE", [](auto db){
-            db.exec("create table foo (bar integer)");
-            db.exec("insert into foo values (42)");
-        });
+		// Create a SQLite db
+		withDB("QSQLITE", [](auto db){
+			db.exec("create table foo (bar integer)");
+			db.exec("insert into foo values (42)");
+		});
 
 		std::cout << "Running Task 2..." << std::endl;
-        // Check that we can read from the SQLite db
-        withDB("QSQLITE", [](auto db){
-            QSqlQuery q = db.exec("select bar from foo");
-            Q_ASSERT(q.next());
-            Q_ASSERT(q.value(0).toInt() == 42);
-        });
+		// Check that we can read from the SQLite db
+		withDB("QSQLITE", [](auto db){
+			QSqlQuery q = db.exec("select bar from foo");
+			Q_ASSERT(q.next());
+			Q_ASSERT(q.value(0).toInt() == 42);
+		});
 
 		std::cout << "Running Task 3..." << std::endl;
-        // Check that SQLite is not SQLCipher
-        withDB("QSQLITE", [](auto db){
-            QSqlQuery q = db.exec("select sqlcipher_export()");
-            QString errmsg = q.lastError().databaseText();
-            Q_ASSERT(errmsg.startsWith("no such function"));
-        });
-    }
+		// Check that SQLite is not SQLCipher
+		withDB("QSQLITE", [](auto db){
+			QSqlQuery q = db.exec("select sqlcipher_export()");
+			QString errmsg = q.lastError().databaseText();
+			Q_ASSERT(errmsg.startsWith("no such function"));
+		});
+	}
 
-    // QSQLCIPHER
-    {
+	// QSQLCIPHER
+	{
 		std::cout << "Running Task 4..." << std::endl;
-        // Check that SQLCipher is not SQLite
-        withDB("QSQLCIPHER", [](auto db){
-            QSqlQuery q = db.exec("select sqlcipher_export()");
-            QString errmsg = q.lastError().databaseText();
-            Q_ASSERT(errmsg.startsWith("wrong number of arguments"));
-        });
+		// Check that SQLCipher is not SQLite
+		withDB("QSQLCIPHER", [](auto db){
+			QSqlQuery q = db.exec("select sqlcipher_export()");
+			QString errmsg = q.lastError().databaseText();
+			Q_ASSERT(errmsg.startsWith("wrong number of arguments"));
+		});
 
 		std::cout << "Running Task 5..." << std::endl;
-        // Create a SQLCipher db with a passphrase
-        withDB("QSQLCIPHER", [](auto db){
-            db.exec("pragma key='foobar'");
-            db.exec("create table foo (bar integer)");
-            db.exec("insert into foo values (42)");
-        });
+		// Create a SQLCipher db with a passphrase
+		withDB("QSQLCIPHER", [](auto db){
+			std::cout << "Running Task 5.1..." << std::endl;
+			db.exec("PRAGMA key = 'foobar';");
+			std::cout << "Running Task 5.2... (this might trigger a segfault)" << std::endl;
+			db.exec("CREATE TABLE `foo` (`bar`	INTEGER);");
+			std::cout << "Running Task 5.3..." << std::endl;
+			db.exec("INSERT INTO `foo` VALUES (42);");
+		});
 
 		std::cout << "Running Task 6..." << std::endl;
-        // Check that we can't read from the SQLCipher db without the passphrase
-        withDB("QSQLCIPHER", [](auto db){
-            QSqlQuery q = db.exec("select bar from foo");
-            Q_ASSERT(!q.next());
-        });
+		// Check that we can't read from the SQLCipher db without the passphrase
+		withDB("QSQLCIPHER", [](auto db){
+			QSqlQuery q = db.exec("select bar from foo");
+			Q_ASSERT(!q.next());
+		});
 
 		std::cout << "Running Task 7..." << std::endl;
-        // Check that we can read from the SQLCipher db with the passphrase
-        withDB("QSQLCIPHER", [](auto db){
-            db.exec("PRAGMA key = 'foobar';");
-            QSqlQuery q = db.exec("select bar from foo");
-            Q_ASSERT(q.next());
-            Q_ASSERT(q.value(0).toInt() == 42);
-        });
+		// Check that we can read from the SQLCipher db with the passphrase
+		withDB("QSQLCIPHER", [](auto db){
+			db.exec("PRAGMA key = 'foobar';");
+			QSqlQuery q = db.exec("select bar from foo");
+			Q_ASSERT(q.next());
+			Q_ASSERT(q.value(0).toInt() == 42);
+		});
 		std::cout << "Success! All tests completed." << std::endl;
-    }
+	}
 
-    return 0;
+	return 0;
 }
