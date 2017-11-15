@@ -8,11 +8,15 @@ instead of SQLite.
 
 ## Dependencies
 
-- Qt 5
+- Qt 5 (with private header files)
 - SQLCipher
 - CMake >= 3.0
 - pkg-config
 
+On a Debian-like platform, you need to install the Qt5 private-dev packages:
+```
+	apt install qtbase5-dev qtbase5-private-dev libsodium-dev
+```
 
 ## Tested platforms
 

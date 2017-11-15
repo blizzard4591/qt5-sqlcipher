@@ -34,14 +34,14 @@ int main(int argc, char *argv[])
 
     // QSQLITE
     {
-		std::cout << 1 << std::endl;
+		std::cout << "Running Task 1..." << std::endl;
         // Create a SQLite db
         withDB("QSQLITE", [](auto db){
             db.exec("create table foo (bar integer)");
             db.exec("insert into foo values (42)");
         });
 
-		std::cout << 2 << std::endl;
+		std::cout << "Running Task 2..." << std::endl;
         // Check that we can read from the SQLite db
         withDB("QSQLITE", [](auto db){
             QSqlQuery q = db.exec("select bar from foo");
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
             Q_ASSERT(q.value(0).toInt() == 42);
         });
 
-		std::cout << 3 << std::endl;
+		std::cout << "Running Task 3..." << std::endl;
         // Check that SQLite is not SQLCipher
         withDB("QSQLITE", [](auto db){
             QSqlQuery q = db.exec("select sqlcipher_export()");
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 
     // QSQLCIPHER
     {
-		std::cout << 4 << std::endl;
+		std::cout << "Running Task 4..." << std::endl;
         // Check that SQLCipher is not SQLite
         withDB("QSQLCIPHER", [](auto db){
             QSqlQuery q = db.exec("select sqlcipher_export()");
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
             Q_ASSERT(errmsg.startsWith("wrong number of arguments"));
         });
 
-		std::cout << 5 << std::endl;
+		std::cout << "Running Task 5..." << std::endl;
         // Create a SQLCipher db with a passphrase
         withDB("QSQLCIPHER", [](auto db){
             db.exec("pragma key='foobar'");
@@ -76,21 +76,22 @@ int main(int argc, char *argv[])
             db.exec("insert into foo values (42)");
         });
 
-		std::cout << 6 << std::endl;
+		std::cout << "Running Task 6..." << std::endl;
         // Check that we can't read from the SQLCipher db without the passphrase
         withDB("QSQLCIPHER", [](auto db){
             QSqlQuery q = db.exec("select bar from foo");
             Q_ASSERT(!q.next());
         });
 
-		std::cout << 7 << std::endl;
+		std::cout << "Running Task 7..." << std::endl;
         // Check that we can read from the SQLCipher db with the passphrase
         withDB("QSQLCIPHER", [](auto db){
-            db.exec("pragma key='foobar'");
+            db.exec("PRAGMA key = 'foobar';");
             QSqlQuery q = db.exec("select bar from foo");
             Q_ASSERT(q.next());
             Q_ASSERT(q.value(0).toInt() == 42);
         });
+		std::cout << "Success! All tests completed." << std::endl;
     }
 
     return 0;
