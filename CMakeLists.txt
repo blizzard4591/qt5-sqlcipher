@@ -22,6 +22,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/sqldrivers)
 
 option(STATIC "Build plugin as a static library" OFF)
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+if(CMAKE_COMPILER_IS_GNUCC)
+	# Set standard flags for GCC
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+endif()
+
 if(STATIC)
     set(LIBTYPE STATIC)
     add_definitions(-DQT_STATICPLUGIN)
@@ -32,9 +40,52 @@ else()
     set(TEST_DIR test-shared)
 endif()
 
+if (Qt5Sql_FOUND)
+	message(STATUS "Found Qt5 version ${Qt5Sql_VERSION}.")
+	if (Qt5Sql_VERSION VERSION_LESS 5.8.0)
+		set(DOWNLOAD_PATH "src/sql/drivers/sqlite")
+	else()
+		set(DOWNLOAD_PATH "src/plugins/sqldrivers/sqlite")
+	endif()
+	
+#	# Check whether the patch version is 0
+#	string(REPLACE "." ";" Qt5Sql_VERSION_LIST ${Qt5Sql_VERSION})
+#	list(GET Qt5Sql_VERSION_LIST 0 Qt5Sql_VERSION_MAJOR)
+#	list(GET Qt5Sql_VERSION_LIST 1 Qt5Sql_VERSION_MINOR)
+#	list(GET Qt5Sql_VERSION_LIST 2 Qt5Sql_VERSION_PATCH)
+#	if ("${Qt5Sql_VERSION_PATCH}" STREQUAL "0")
+#		message(STATUS "Qt5 Patch version is zero.")
+#	else()
+#		message(STATUS "Qt5 Patch version not zero.")
+#	endif()
+	set(URL_HEADER "https://raw.githubusercontent.com/qt/qtbase/v${Qt5Sql_VERSION}/${DOWNLOAD_PATH}/qsql_sqlite_p.h")
+	set(URL_CPP "https://raw.githubusercontent.com/qt/qtbase/v${Qt5Sql_VERSION}/${DOWNLOAD_PATH}/qsql_sqlite.cpp")
+	message(STATUS "URL = ${URL_HEADER}")
+	
+	file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/qt-private-from-git-version-${Qt5Sql_VERSION}")
+	include_directories("${CMAKE_BINARY_DIR}/qt-private-from-git-version-${Qt5Sql_VERSION}")
+	
+	file(DOWNLOAD URL_HEADER "${CMAKE_BINARY_DIR}/qt-private-from-git-version-${Qt5Sql_VERSION}/qsql_sqlite_p.h" STATUS STATUS_HEADER_LIST TLS_VERIFY on)
+	file(DOWNLOAD URL_CPP "${CMAKE_BINARY_DIR}/qt-private-from-git-version-${Qt5Sql_VERSION}/qsql_sqlite.cpp" STATUS STATUS_CPP_LIST TLS_VERIFY on)
+	
+	list(GET STATUS_HEADER_LIST 0 STATUS_HEADER)
+	list(GET STATUS_CPP_LIST 0 STATUS_CPP)
+	if ((NOT "${STATUS_HEADER}" STREQUAL "0") OR (NOT "${STATUS_CPP}" STREQUAL "0"))
+		list(GET STATUS_HEADER_LIST 1 STATUS_HEADER_ERROR)
+		list(GET STATUS_CPP_LIST 1 STATUS_CPP_ERROR)
+		message(SEND_ERROR "Could not download required Qt5 private header/source files. Please report this error! Qt Version: ${Qt5Sql_VERSION}. Result Header: ${STATUS_HEADER}. Error: ${STATUS_HEADER_ERROR}. Result Source: ${STATUS_CPP}. Error: ${STATUS_CPP_ERROR}.")
+	else()
+		message(STATUS "Downloaded required header/source files for your Qt5 version.")
+	endif()
+endif()
+
+if (QT5_FOUND)
+	message(STATUS "Found Qt5 version B ${QT_MAJOR_VERSION}.${QT_MINOR_VERSION}.${QT_PATCH_VERSION}")
+endif()
+
 add_library(qsqlcipher ${LIBTYPE}
     smain.cpp
-    qt-private/qsql_sqlite.cpp
+    "${CMAKE_BINARY_DIR}/qt-private-from-git-version-${Qt5Sql_VERSION}/qsql_sqlite.cpp"
 )
 
 if (WIN32)
