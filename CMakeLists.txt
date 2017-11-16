@@ -2,14 +2,30 @@ cmake_minimum_required(VERSION 3.0)
 project(qsqlcipher)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/cmake/")
-SET(CMAKE_PREFIX_PATH "D:/Qt/5.9.2/msvc2017_64/lib/cmake/")
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+	SET(CMAKE_PREFIX_PATH "C:/Qt/5.9.2/msvc2017_64/lib/cmake/")
+else()
+	SET(CMAKE_PREFIX_PATH "C:/Qtx86/5.9.2/msvc2015/lib/cmake/")
+endif()
 
 find_package(Qt5Sql REQUIRED)
-find_package(PkgConfig REQUIRED)
 
 if (NOT WIN32)
+	find_package(PkgConfig REQUIRED)
 	pkg_check_modules(SQLCIPHER REQUIRED sqlcipher)
 else()
+	if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+		set(_lib_suffix_win "x64")
+	else()
+		set(_lib_suffix_win "x86")
+	endif()
+
+	# Change this by hand if needed
+	set(Libsqlcipher_INCLUDE_DIRS "C:/CppProjects/sqlcipher/include")
+	# Change this by hand if needed
+	set(Libsqlcipher_LIBRARIES "optimized;C:/CppProjects/sqlcipher/compile/${_lib_suffix_win}/Release/sqlite3.lib;debug;C:/CppProjects/sqlcipher/compile/${_lib_suffix_win}/Debug/sqlite3.lib")
+
 	find_package(Libsqlcipher REQUIRED)
 endif()
 
@@ -19,9 +35,15 @@ set(CMAKE_AUTOMOC ON)
 # Arrange output paths so that the plugin is found in the default search path
 # relative to the test binary.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/sqldrivers)
+if (NOT WIN32)
+	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/sqldrivers)
+else()
+	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/sqldrivers)
+	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release/sqldrivers)
+endif()
 
 option(QSQLCIPHER_STATIC "Build plugin as a static library" OFF)
+option(QSQLCIPHER_BUILD_TESTS "Build the test binary" ON)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -74,27 +96,17 @@ add_library(qsqlcipher ${LIBTYPE}
     "${CMAKE_BINARY_DIR}/qt-private-from-git-version-${Qt5Sql_VERSION}/qt-private/qsql_sqlite.cpp"
 )
 
-if (WIN32)
-	# Change this by hand if needed
-	set(SQLCIPHER_INCLUDE_DIRS "D:/CppProjects/sqlcipher-original")
-endif()
-
 target_include_directories(qsqlcipher PRIVATE
     ${Qt5Sql_PRIVATE_INCLUDE_DIRS}
     ${SQLCIPHER_INCLUDE_DIRS} ${Libsqlcipher_INCLUDE_DIRS}
 )
-
-if (WIN32)
-	# Change this by hand if needed
-	set(SQLCIPHER_LIBRARIES "optimized;D:/CppProjects/sqlcipher-original-build/Retail/x64/sqlite3.lib;debug;D:/CppProjects/sqlcipher-original-build/Debug/x64/sqlite3.lib")
-endif()
 
 target_link_libraries(qsqlcipher
     Qt5::Sql
     ${SQLCIPHER_LIBRARIES} ${Libsqlcipher_LIBRARIES}
 )
 
-include(CTest)
-if(BUILD_TESTING)
+#include(CTest)
+if(QSQLCIPHER_BUILD_TESTS)
     add_subdirectory(${TEST_DIR})
 endif()
