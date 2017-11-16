@@ -44,6 +44,7 @@ endif()
 
 option(QSQLCIPHER_STATIC "Build plugin as a static library" OFF)
 option(QSQLCIPHER_BUILD_TESTS "Build the test binary" ON)
+set(QSQLCIPHER_COPYTO_DIR "" CACHE PATH "If set, the build artifact of the library will be copied there")
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -105,6 +106,10 @@ target_link_libraries(qsqlcipher
     Qt5::Sql
     ${SQLCIPHER_LIBRARIES} ${Libsqlcipher_LIBRARIES}
 )
+
+if (NOT ("${QSQLCIPHER_COPYTO_DIR}" STREQUAL ""))
+	add_custom_command(TARGET qsqlcipher POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:qsqlcipher> ${QSQLCIPHER_COPYTO_DIR}/$<TARGET_FILE_NAME:qsqlcipher>)
+endif()
 
 #include(CTest)
 if(QSQLCIPHER_BUILD_TESTS)
