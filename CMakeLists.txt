@@ -126,7 +126,7 @@ endif()
 SET(CPACK_PACKAGE_VERSION "0.1.0")
 SET(CPACK_PACKAGE_CONTACT "packaging@openmittsu.de")
 SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
-SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5sql5, libsqlcipher0, qtbase5-dev, qtbase5-private-dev")
+SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5sql5, libsqlcipher0 (>= 3.4.1-1)")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A Qt5 wrapper for using SqlCipher as a QSqlDriver.")
 SET(CPACK_DEBIAN_PACKAGE_SECTION "libs")
  
