@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(qsqlcipher)
+project(libqt5sql5-sqlcipher)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/cmake/")
 
@@ -111,7 +111,23 @@ if (NOT ("${QSQLCIPHER_COPYTO_DIR}" STREQUAL ""))
 	add_custom_command(TARGET qsqlcipher POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:qsqlcipher> ${QSQLCIPHER_COPYTO_DIR}/$<TARGET_FILE_NAME:qsqlcipher>)
 endif()
 
+if (NOT WIN32)
+	INSTALL(TARGETS qsqlcipher DESTINATION lib/qt5/plugins/sqldrivers)
+else()
+	INSTALL(TARGETS qsqlcipher DESTINATION sqldrivers)
+endif()
+
 #include(CTest)
 if(QSQLCIPHER_BUILD_TESTS)
     add_subdirectory(${TEST_DIR})
 endif()
+
+# Packaging 
+SET(CPACK_PACKAGE_VERSION "0.1.0")
+SET(CPACK_PACKAGE_CONTACT "packaging@openmittsu.de")
+SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5sql5, libsqlcipher0, qtbase5-dev, qtbase5-private-dev")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A Qt5 wrapper for using SqlCipher as a QSqlDriver.")
+SET(CPACK_DEBIAN_PACKAGE_SECTION "libs")
+ 
+INCLUDE(CPack)
