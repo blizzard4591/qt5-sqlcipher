@@ -4,7 +4,7 @@
 # This module finds the libsqlcipher header and library files. It
 # sets the following variables.
 #
-# Libsqlcipher_INCLUDE_DIR -  Include directory for Libsqlcipher header files.
+# Libsqlcipher_INCLUDE_DIRS -  Include directories for Libsqlcipher header files.
 # Libsqlcipher_LIBRARIES -	The name of the library to link against.
 #
 # Libsqlcipher_FOUND - Indicates whether Libsqlcipher has been found
@@ -15,7 +15,7 @@ if(PKG_CONFIG_FOUND)
 	pkg_check_modules(Libsqlcipher QUIET SQLCipher)
 endif()
 
-find_path(Libsqlcipher_INCLUDE_DIR sqlcipher/sqlite3.h
+find_path(Libsqlcipher_INCLUDE_DIRS sqlcipher/sqlite3.h
 	HINTS
 	$ENV{LIBSQLCIPHER_DIR}
 	PATH_SUFFIXES include/sqlcipher include
@@ -61,7 +61,6 @@ FIND_LIBRARY(Libsqlcipher_LIBRARIES
   /usr
 )
 
-set(Libsqlcipher_INCLUDE_DIRS ${Libsqlcipher_INCLUDE_DIR})
 find_package_handle_standard_args(Libsqlcipher FOUND_VAR Libsqlcipher_FOUND REQUIRED_VARS Libsqlcipher_LIBRARIES Libsqlcipher_INCLUDE_DIRS)
-mark_as_advanced(Libsqlcipher_INCLUDE_DIR)
+mark_as_advanced(Libsqlcipher_INCLUDE_DIRS)
 mark_as_advanced(Libsqlcipher_LIBRARIES)
