@@ -15,17 +15,6 @@ if (NOT WIN32)
 	find_package(PkgConfig REQUIRED)
 	pkg_check_modules(SQLCIPHER REQUIRED sqlcipher)
 else()
-	if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-		set(_lib_suffix_win "x64")
-	else()
-		set(_lib_suffix_win "x86")
-	endif()
-
-	# Change this by hand if needed
-	set(Libsqlcipher_INCLUDE_DIRS "C:/CppProjects/sqlcipher/include")
-	# Change this by hand if needed
-	set(Libsqlcipher_LIBRARIES "optimized;C:/CppProjects/sqlcipher/compile/${_lib_suffix_win}/Release/sqlite3.lib;debug;C:/CppProjects/sqlcipher/compile/${_lib_suffix_win}/Debug/sqlite3.lib")
-
 	find_package(Libsqlcipher REQUIRED)
 endif()
 
@@ -108,7 +97,7 @@ add_library(qsqlcipher ${LIBTYPE}
 
 target_include_directories(qsqlcipher PRIVATE
     ${Qt5Sql_PRIVATE_INCLUDE_DIRS}
-    ${SQLCIPHER_INCLUDE_DIRS} ${Libsqlcipher_INCLUDE_DIRS}
+    ${SQLCIPHER_INCLUDE_DIRS} ${Libsqlcipher_INCLUDE_DIRS}/sqlcipher
 )
 
 target_link_libraries(qsqlcipher

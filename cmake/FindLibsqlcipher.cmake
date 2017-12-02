@@ -26,7 +26,13 @@ find_path(Libsqlcipher_INCLUDE_DIRS sqlcipher/sqlite3.h
 	/usr
 	/opt/local
 	/opt
+	${Libsqlcipher_INCLUDE_DIRS}
 )
+
+if(NOT EXISTS "${Libsqlcipher_INCLUDE_DIRS}/sqlcipher/sqlite3.h")
+	message(SEND_ERROR "Could not find LibSqlCipher Include directory for Libsqlcipher_INCLUDE_DIRS, it should contain sqlcipher/sqlite3.h! Tried: \"${Libsqlcipher_INCLUDE_DIRS}\"")
+	set(Libsqlcipher_INCLUDE_DIRS "")
+endif()
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 	set(_lib_suffix 64)

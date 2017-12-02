@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 	// QSQLCIPHER
 	{
 #if defined(_WIN32) || defined(_WIN64) || defined(_MSC_VER )
-		std::cout << "Hint: If you get an error in the following task like \"QSQLCIPHER driver not loaded\" then check if library dependencies (e.g. libeay32.dll) are in the same folder as the test executable." << std::endl;
+		std::cout << "Hint: If you get an error in the following task like \"QSQLCIPHER driver not loaded\" then check if library dependencies (e.g. libssl32.dll and sqlite3.dll from SQLCipher) are in the same folder as the test executable." << std::endl;
 #endif
 		std::cout << "Running Task 4..." << std::endl;
 		// Check that SQLCipher is not SQLite
@@ -75,7 +75,8 @@ int main(int argc, char *argv[])
 		withDB("QSQLCIPHER", [](auto db){
 			std::cout << "Running Task 5.1..." << std::endl;
 			db.exec("PRAGMA key = 'foobar';");
-			std::cout << "Running Task 5.2... (this might trigger a segfault)" << std::endl;
+			std::cout << "Hint: The next test might trigger a segfault when SQLCipher is linked against an incompatible version of OpenSSL or comes with the broken compatibility patch for OpenSSL 1.1.x." << std::endl;
+			std::cout << "Running Task 5.2..." << std::endl;
 			db.exec("CREATE TABLE `foo` (`bar`	INTEGER);");
 			std::cout << "Running Task 5.3..." << std::endl;
 			db.exec("INSERT INTO `foo` VALUES (42);");
