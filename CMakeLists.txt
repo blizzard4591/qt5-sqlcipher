@@ -4,10 +4,14 @@ project(libqt5sql5-sqlcipher)
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/cmake/")
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-	SET(CMAKE_PREFIX_PATH "C:/Qt/5.9.2/msvc2017_64/lib/cmake/")
+	SET(CMAKE_PREFIX_PATH "C:/Qt/5.11.2/msvc2017_64/lib/cmake/")
 else()
-	SET(CMAKE_PREFIX_PATH "C:/Qtx86/5.9.2/msvc2015/lib/cmake/")
+	SET(CMAKE_PREFIX_PATH "C:/Qtx86/5.11.2/msvc2015/lib/cmake/")
 endif()
+
+SET(QSQLCIPHER_CMAKE_SEARCH_PATH "C:/Qt/5.11.2/msvc2017_64" CACHE PATH "Additional Qt5 search path" )
+
+SET(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${QSQLCIPHER_CMAKE_SEARCH_PATH}/lib/cmake/")
 
 find_package(Qt5Sql REQUIRED)
 
