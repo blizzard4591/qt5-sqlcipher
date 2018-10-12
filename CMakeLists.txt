@@ -1,14 +1,19 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.2)
 project(libqt5sql5-sqlcipher)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/cmake/")
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-	SET(CMAKE_PREFIX_PATH "C:/Qt/5.9.2/msvc2017_64/lib/cmake/")
+	SET(CMAKE_PREFIX_PATH "C:/Qt/5.11.2/msvc2017_64/lib/cmake/")
 else()
-	SET(CMAKE_PREFIX_PATH "C:/Qtx86/5.9.2/msvc2015/lib/cmake/")
+	SET(CMAKE_PREFIX_PATH "C:/Qtx86/5.11.2/msvc2015/lib/cmake/")
 endif()
 
+SET(QSQLCIPHER_CMAKE_SEARCH_PATH "C:/Qt/5.11.2/msvc2017_64" CACHE PATH "Additional Qt5 search path" )
+
+SET(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${QSQLCIPHER_CMAKE_SEARCH_PATH}/lib/cmake/")
+
+find_package(Qt5Core REQUIRED)
 find_package(Qt5Sql REQUIRED)
 
 if (NOT WIN32)
@@ -33,6 +38,7 @@ endif()
 
 option(QSQLCIPHER_STATIC "Build plugin as a static library" OFF)
 option(QSQLCIPHER_BUILD_TESTS "Build the test binary" ON)
+option(QSQLCIPHER_INSTALL_INTO_QT_PLUGIN_DIRECTORY "Find the Qt plugin directory and install the driver there" OFF)
 set(QSQLCIPHER_COPYTO_DIR "" CACHE PATH "If set, the build artifact of the library will be copied there")
 
 set(CMAKE_CXX_STANDARD 14)
@@ -40,6 +46,31 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(CMAKE_COMPILER_IS_GNUCC)
 	# Set standard flags for GCC
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+endif()
+
+if(QSQLCIPHER_INSTALL_INTO_QT_PLUGIN_DIRECTORY)
+	if (NOT WIN32)
+		try_run(QSQLCIPHER_PLUGIN_DIR_TEST_RUN_RESULT QSQLCIPHER_PLUGIN_DIR_TEST_COMPILE_RESULT "${PROJECT_BINARY_DIR}/testPointerSize" "${CMAKE_CURRENT_SOURCE_DIR}/cmake/getPluginFolder.cpp" LINK_LIBRARIES Qt5::Core COMPILE_OUTPUT_VARIABLE QSQLCIPHER_PLUGIN_DIR_TEST_COMPILE_OUTPUT RUN_OUTPUT_VARIABLE QSQLCIPHER_PLUGIN_DIR_TEST_RUN_OUTPUT)
+		if (NOT ${QSQLCIPHER_PLUGIN_DIR_TEST_COMPILE_RESULT})
+			message(FATAL_ERROR "Failed to compile pointer size testing program, please contact a developer! Extended Information: ${QSQLCIPHER_PLUGIN_DIR_TEST_COMPILE_OUTPUT}") 
+		elseif(NOT "${QSQLCIPHER_PLUGIN_DIR_TEST_RUN_RESULT}" STREQUAL "0")
+			message(FATAL_ERROR "Failed to run pointer size testing program, please contact a developer! Extended Information: ${QSQLCIPHER_PLUGIN_DIR_TEST_RUN_OUTPUT}") 
+		else()
+			set(QSQLCIPHER_PLUGIN_DIR "${QSQLCIPHER_PLUGIN_DIR_TEST_RUN_OUTPUT}")
+			message(STATUS "QSQLCIPHER_INSTALL_INTO_QT_PLUGIN_DIRECTORY is set, will install plugin to folder ${QSQLCIPHER_PLUGIN_DIR}/sqldrivers")
+		endif()
+	else()
+		string(REPLACE "\\" "/" Qt5Core_DIR "${Qt5Core_DIR}")
+		if ("${Qt5Core_DIR}" STREQUAL "")
+			message(SEND_ERROR "Qt5Core_DIR is not set and can not be used to derive the location of the Qt installation.")
+		elseif(NOT "${Qt5Core_DIR}" MATCHES "^(.*)/lib/cmake/Qt5Core")
+			message(SEND_ERROR "Qt5Core_DIR does not end in lib/cmake/Qt5Core, which is unexpected and therefore can not be used to derive the location of the Qt installation.")
+		else()
+			string(REGEX REPLACE "^(.*)/lib/cmake/Qt5Core" "\\1" QT5_BASE_DIR "${Qt5Core_DIR}")
+			set(QSQLCIPHER_PLUGIN_DIR "${QT5_BASE_DIR}/plugins")
+			message(STATUS "QSQLCIPHER_INSTALL_INTO_QT_PLUGIN_DIRECTORY is set, will install plugin to folder ${QSQLCIPHER_PLUGIN_DIR}/sqldrivers")
+		endif()
+	endif()
 endif()
 
 if(QSQLCIPHER_STATIC)
@@ -110,6 +141,10 @@ target_link_libraries(qsqlcipher
 
 if (NOT ("${QSQLCIPHER_COPYTO_DIR}" STREQUAL ""))
 	add_custom_command(TARGET qsqlcipher POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:qsqlcipher> ${QSQLCIPHER_COPYTO_DIR}/$<TARGET_FILE_NAME:qsqlcipher>)
+endif()
+
+if (NOT ("${QSQLCIPHER_PLUGIN_DIR}" STREQUAL ""))
+	add_custom_command(TARGET qsqlcipher POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:qsqlcipher> ${QSQLCIPHER_PLUGIN_DIR}/sqldrivers/$<TARGET_FILE_NAME:qsqlcipher>)
 endif()
 
 find_program(DPKG_PROGRAM dpkg DOC "dpkg program of Debian-based systems")
