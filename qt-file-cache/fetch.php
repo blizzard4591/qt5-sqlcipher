@@ -40,11 +40,18 @@ function fetchPage($pageNumber) {
 	
 	foreach ($headerLines as $line) {
 		$line = trim($line);
-		if (preg_match('/Link:\s*<([^?]+\?page=(\d+))>;\s*rel="next",\s*<([^?]+\?page=(\d+))>;\s*rel="last"/si', $line, $regs)) {
+		// Link: <https://api.github.com/repositories/9880335/tags?page=2>; rel="prev", <https://api.github.com/repositories/9880335/tags?page=1>; rel="first"
+		// Link: <https://api.github.com/repositories/9880335/tags?page=1>; rel="prev", <https://api.github.com/repositories/9880335/tags?page=3>; rel="next", <https://api.github.com/repositories/9880335/tags?page=3>; rel="last", <https://api.github.com/repositories/9880335/tags?page=1>; rel="first"
+		
+		if (preg_match('/Link:\s*(?:<[^?]+\?page=\d+>;\s*rel="prev",\s*)?<([^?]+\?page=(\d+))>;\s*rel="next",\s*<([^?]+\?page=(\d+))>;\s*rel="last"/si', $line, $regs)) {
 			$hasNext = ($pageNumber < $regs[4]);
 			$nextPageId = $regs[2];
 			$hasLinkHeaderMatch = true;
 		} else if (preg_match('/Link:\s*<([^?]+\?page=(\d+))>;\s*rel="first",\s*<([^?]+\?page=(\d+))>;\s*rel="prev"/si', $line, $regs)) {
+			$hasNext = false;
+			$nextPageId = -1;
+			$hasLinkHeaderMatch = true;
+		} else if (preg_match('/Link:\s*<([^?]+\?page=(\d+))>;\s*rel="prev",\s*<([^?]+\?page=(\d+))>;\s*rel="first"/si', $line, $regs)) {
 			$hasNext = false;
 			$nextPageId = -1;
 			$hasLinkHeaderMatch = true;
