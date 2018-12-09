@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 		withDB("QSQLCIPHER", [](auto db){
 			QSqlQuery q = db.exec("select sqlcipher_export()");
 			QString errmsg = q.lastError().databaseText();
-			QSQLCIPHER_TEST_ASSERT(errmsg.startsWith("wrong number of arguments"), "Database did not respond with the expected error message.");
+			QSQLCIPHER_TEST_ASSERT(errmsg.startsWith("wrong number of arguments") || errmsg.startsWith("invalid number of arguments"), "Database did not respond with the expected error message.");
 		});
 
 		std::cout << "Running Task 5..." << std::endl;
