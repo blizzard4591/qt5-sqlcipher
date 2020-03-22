@@ -1,13 +1,33 @@
 #include <QCoreApplication>
 #include <QtSql>
 #include <QTemporaryDir>
+
+#include <QDirIterator>
+#include <QStringList>
+
 #include <iostream>
 #include <cstdlib>
 
 #define QSQLCIPHER_TEST_ASSERT(cond, message) if(!(cond)) { std::cerr << message << std::endl; exit(-1); }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
+	
+	// Check for MacOSX Plugin directories
+	QDirIterator pluginDirIt("/usr/local/Cellar/qt5-sqlcipher");
+	QStringList pluginVersions;
+	while (pluginDirIt.hasNext()) {
+		QString const pluginDir =  pluginDirIt.next();
+		QString const fileName(pluginDirIt.fileName());
+		if ((fileName.compare(QStringLiteral(".")) == 0) || (fileName.compare(QStringLiteral("..")) == 0)) {
+			continue;
+		}
+		pluginVersions.append(pluginDir);
+	}
+	pluginVersions.sort();
+	if (!pluginVersions.isEmpty()) {
+		QCoreApplication::addLibraryPath(pluginVersions.last());
+	}
+	
 	QCoreApplication app(argc, argv);
 
 	for (const auto& driver : QSqlDatabase::drivers()) {
