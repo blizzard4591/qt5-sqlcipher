@@ -16,14 +16,15 @@ function makeBaseUrl($major, $minor, $patch) {
 }
 
 function fetchPage($pageNumber) {
-	$ch = curl_init('https://api.github.com/repos/qt/qtbase/tags?page='.$pageNumber);
+	$url = 'https://api.github.com/repos/qt/qtbase/tags?page='.$pageNumber;
+	$ch = curl_init($url);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_HEADER, 1);
 	curl_setopt($ch, CURLOPT_USERAGENT, 'Qt5-SqlCipher');
 	$tagData = curl_exec($ch);
 	$responseCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 	if ($responseCode != 200) {
-		throw new Exception("Error: Response Code was ".$responseCode."!");
+		throw new Exception("Error: Response Code was ".$responseCode." for URL '".$url."'!");
 	}
 
 	$header_len = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
