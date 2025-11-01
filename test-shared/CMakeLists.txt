@@ -1,7 +1,6 @@
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS "-std=c++14")
 
 add_executable(qsqlcipher-test main.cpp)
-target_link_libraries(qsqlcipher-test Qt5::Sql)
+target_link_libraries(qsqlcipher-test Qt${QT_VERSION_MAJOR}::Sql)
 
 #add_test(NAME qsqlcipher-test COMMAND qsqlcipher-test)
