@@ -1,7 +1,8 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.10)
 project(libqt5sql5-sqlcipher)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/cmake/")
+set(QT_NO_PRIVATE_MODULE_WARNING ON)
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 	SET(CMAKE_PREFIX_PATH "C:/Qt/5.11.2/msvc2017_64/lib/cmake/")
@@ -11,10 +12,11 @@ endif()
 
 SET(QSQLCIPHER_CMAKE_SEARCH_PATH "C:/Qt/5.11.2/msvc2017_64" CACHE PATH "Additional Qt5 search path" )
 
+message(STATUS "QSQLCIPHER_CMAKE_SEARCH_PATH: ${QSQLCIPHER_CMAKE_SEARCH_PATH}")
 SET(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${QSQLCIPHER_CMAKE_SEARCH_PATH}/lib/cmake/")
 
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Sql REQUIRED)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Sql)
+find_package(Qt5 REQUIRED COMPONENTS Core Sql)
 
 if (NOT WIN32)
 	find_package(PkgConfig REQUIRED)
@@ -45,11 +47,11 @@ option(QSQLCIPHER_BUILD_TESTS "Build the test binary" ON)
 option(QSQLCIPHER_INSTALL_INTO_QT_PLUGIN_DIRECTORY "Find the Qt plugin directory and install the driver there" OFF)
 set(QSQLCIPHER_COPYTO_DIR "" CACHE PATH "If set, the build artifact of the library will be copied there")
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(CMAKE_COMPILER_IS_GNUCC)
 	# Set standard flags for GCC
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 endif()
 
 if(QSQLCIPHER_STATIC)
@@ -152,6 +154,11 @@ add_library(qsqlcipher ${LIBTYPE}
     "${_PRIVATE_SOURCES_DIRECTORY}/qsql_sqlite.cpp"
 )
 
+# We need QStringView -> QString conversions to happen
+target_compile_definitions(qsqlcipher PRIVATE QT_USE_QSTRINGBUILDER)
+target_compile_definitions(qsqlcipher PRIVATE QT_RESTRICTED_CAST_FROM_ASCII)
+target_compile_definitions(qsqlcipher PRIVATE QT_NO_CAST_TO_ASCII)
+
 target_include_directories(qsqlcipher PRIVATE
     ${Qt5Sql_PRIVATE_INCLUDE_DIRS}
     ${SQLCIPHER_INCLUDE_DIRS} ${Libsqlcipher_INCLUDE_DIRS}/sqlcipher
@@ -185,9 +192,9 @@ if (NOT WIN32)
 				INSTALL(TARGETS qsqlcipher DESTINATION lib/i386-linux-gnu/qt5/plugins/sqldrivers)
 			endif()
 		else()
-			string(REGEX REPLACE "^/usr/(.*)$" "\\1" QT5_PLUGIN_DIR_SUFFIX "${QSQLCIPHER_QT_PLUGIN_DIR}")
-			message(STATUS "Stripped plugin path to ${QT5_PLUGIN_DIR_SUFFIX} from ${QSQLCIPHER_QT_PLUGIN_DIR}")
-			INSTALL(TARGETS qsqlcipher DESTINATION "${QT5_PLUGIN_DIR_SUFFIX}/sqldrivers")
+			string(REGEX REPLACE "^/usr/(.*)$" "\\1" QT_PLUGIN_DIR_SUFFIX "${QSQLCIPHER_QT_PLUGIN_DIR}")
+			message(STATUS "Stripped plugin path to ${QT_PLUGIN_DIR_SUFFIX} from ${QSQLCIPHER_QT_PLUGIN_DIR}")
+			INSTALL(TARGETS qsqlcipher DESTINATION "${QT_PLUGIN_DIR_SUFFIX}/sqldrivers")
 		endif()
 	elseif (APPLE)
 		message(STATUS "Packaging for Mac OSX is done through homebrew, if you are not using it right now, you should.")
@@ -210,9 +217,9 @@ endif()
 SET(CPACK_PACKAGE_NAME "libqt5sql5-sqlcipher")
 SET(CPACK_PACKAGE_CONTACT "packaging@openmittsu.de")
 
-SET(CPACK_PACKAGE_VERSION_MAJOR "0")
-SET(CPACK_PACKAGE_VERSION_MINOR "1")
-SET(CPACK_PACKAGE_VERSION_PATCH "3")
+SET(CPACK_PACKAGE_VERSION_MAJOR "1")
+SET(CPACK_PACKAGE_VERSION_MINOR "0")
+SET(CPACK_PACKAGE_VERSION_PATCH "12")
 SET(CPACK_PACKAGE_VERSION_REVISION "1-${Qt5Sql_VERSION}")
 SET(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 
@@ -239,7 +246,7 @@ else (DPKG_PROGRAM)
 endif(DPKG_PROGRAM)
 
 SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5sql5, libsqlcipher0 (>= 3.4.1-1)")
-SET(DEBIAN_PACKAGE_BUILDS_DEPENDS "debhelper (>= 9), cmake (>= 3), qt5-qmake, qtbase5-dev, qtbase5-private-dev, qtbase5-dev-tools, qtmultimedia5-dev, gcc, g++")
+SET(DEBIAN_PACKAGE_BUILDS_DEPENDS "debhelper (>= 9), cmake (>= 3), qtbase5-dev, qtbase5-private-dev, qtbase5-dev-tools, qtmultimedia5-dev, gcc, g++")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A Qt5 wrapper for using SqlCipher as a QSqlDriver.")
 SET(CPACK_DEBIAN_PACKAGE_SECTION "libs")
  
