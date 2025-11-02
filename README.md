@@ -1,44 +1,39 @@
 Qt SQL driver plugin for SQLCipher
 ==================================
 
-This is a [QSqlDriverPlugin](http://doc.qt.io/qt-5/qsqldriverplugin.html) for
+This is a [QSqlDriverPlugin](http://doc.qt.io/qt-6/qsqldriverplugin.html) for
 [SQLCipher](https://www.zetetic.net/sqlcipher/open-source/). It is quite
 simple - it uses Qt's own SQLite driver code but links against SQLCipher
 instead of SQLite.
 
 ## Dependencies
 
-- Qt 5 (with private header files)
+- Qt 6 (with private header files) (for Qt5 support, look in the old qt5 branch!)
 - SQLCipher
-- CMake >= 3.0
+- CMake >= 3.10
 - pkg-config
 
-On a Debian-like platform, you need to install the Qt5 private-dev packages:
+On a Debian-like platform, you need to install the Qt6 private-dev packages:
 ```
-	apt install qtbase5-dev qtbase5-private-dev libsodium-dev
+	apt install qt6-base-dev qt6-base-private-dev libsodium-dev
 ```
 
 ## Tested platforms
 
-- OS X 10.10 Yosemite
+- Debian 13 Trixie
 
-    - Qt 5.5.0 from Homebrew
-    - SQLCipher 3.3.0 from Homebrew
+    - Qt 6.8.2
+    - SQLCipher 4.6.1
+    - Also requires ``qt6-base-private-dev`` for Qt's private headers.
 
-- Ubuntu 15.04 Vivid Vervet
+- Windows 11
 
-    - Qt 5.4.1
-    - SQLCipher 3.2.0
-    - Also requires ``qtbase5-private-dev`` for Qt's private headers.
-
-- Windows 7 - 10
-
-    - Qt 5.9.2
+    - Qt 6.10.0
     - hacked together
 
 ## Deployment
 
-Follow [Qt's plugin deployment guide](http://doc.qt.io/qt-5/deployment-plugins.html).
+Follow [Qt's plugin deployment guide](http://doc.qt.io/qt-6/deployment-plugins.html).
 In short, put the plugin at ``sqldrivers/libqsqlcipher.so`` relative to your
 executable.
 
@@ -60,14 +55,6 @@ you to make sure CMake finds static versions of those libraries.
 
 Some basic tests are included - run ``make test``. Note that while pretty much
 any C++ compiler can build the actual plugin, the tests require support for
-C++14. If you have an old compiler you can pass ``-DBUILD_TESTING=OFF`` to CMake
+C++17. If you have an old compiler you can pass ``-DBUILD_TESTING=OFF`` to CMake
 to skip building the tests.
-
------
-
-## Old version
-
-This repository used to contain a different method of achieving the same
-result, but which required you to have the full Qt source tree available. That
-code is available in the ``old`` branch of this repository.
 
