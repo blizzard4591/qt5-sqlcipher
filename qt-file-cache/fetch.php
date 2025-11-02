@@ -2,11 +2,11 @@
 <?php
 
 function makeBaseUrl($major, $minor, $patch) {
-	if ($major != 5) {
+	if ($major != 5 && $major != 6) {
 		throw new Exception("Error: Unsupported major version: ".$major."!");
 	}
 	$path = '';
-	if ($minor < 8) {
+	if ($major == 5 && $minor < 8) {
 		$path = "src/sql/drivers/sqlite";
 	} else {
 		$path = "src/plugins/sqldrivers/sqlite";
@@ -92,7 +92,7 @@ function extractVersions($decodedJsonData) {
 	$result = array();
 	foreach ($decodedJsonData as $key => $value) {
 		if (preg_match('/^v(\d+)\.(\d+)\.(\d+)$/si', $value->name, $regs)) {
-			if ($regs[1] != '5') {
+			if ($regs[1] != '5' && $regs[1] != '6') {
 				echo "Warning: Ignoring version ".$regs[1].'.'.$regs[2].'.'.$regs[3]." which has an unsupported major version!\n";
 				continue;
 			}
@@ -110,7 +110,7 @@ function fetchFiles($versions, $targetPath) {
 		
 		echo "Fetching files for version ".$version['full']."...\n";
 		$baseUrl = makeBaseUrl($version['major'], $version['minor'], $version['patch']);
-		if ($version['minor'] >= 1) {
+		if ($version['major'] == 6 || $version['minor'] >= 1) {
 			$header = fetchFile($baseUrl .'/'. 'qsql_sqlite_p.h');
 		} else {
 			$header = fetchFile($baseUrl .'/'. 'qsql_sqlite.h');
@@ -136,7 +136,7 @@ while ($hasNext) {
 	$versions = array_merge($versions, extractVersions($decodedJsonData));
 }
 
-echo "Now fetching files for ".count($versions)." versions of Qt 5.\n";
+echo "Now fetching files for ".count($versions)." versions of Qt 5/6.\n";
 fetchFiles($versions, '.');
 
 echo "Done.\n";
