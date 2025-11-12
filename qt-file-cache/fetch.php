@@ -2,15 +2,10 @@
 <?php
 
 function makeBaseUrl($major, $minor, $patch) {
-	if ($major != 5 && $major != 6) {
+	if ($major != 6) {
 		throw new Exception("Error: Unsupported major version: ".$major."!");
 	}
-	$path = '';
-	if ($major == 5 && $minor < 8) {
-		$path = "src/sql/drivers/sqlite";
-	} else {
-		$path = "src/plugins/sqldrivers/sqlite";
-	}
+	$path = "src/plugins/sqldrivers/sqlite";
 
 	return 'https://raw.githubusercontent.com/qt/qtbase/v'.$major.'.'.$minor.'.'.$patch.'/'.$path;
 }
@@ -20,7 +15,7 @@ function fetchPage($pageNumber) {
 	$ch = curl_init($url);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_HEADER, 1);
-	curl_setopt($ch, CURLOPT_USERAGENT, 'Qt5-SqlCipher');
+	curl_setopt($ch, CURLOPT_USERAGENT, 'Qt6-SqlCipher');
 	$tagData = curl_exec($ch);
 	$responseCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 	if ($responseCode != 200) {
@@ -76,7 +71,7 @@ function fetchFile($url) {
 	$ch = curl_init($url);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_HEADER, 0);
-	curl_setopt($ch, CURLOPT_USERAGENT, 'Qt5-SqlCipher');
+	curl_setopt($ch, CURLOPT_USERAGENT, 'Qt6-SqlCipher');
 	$data = curl_exec($ch);
 	$responseCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 	if ($responseCode != 200) {
@@ -92,7 +87,7 @@ function extractVersions($decodedJsonData) {
 	$result = array();
 	foreach ($decodedJsonData as $key => $value) {
 		if (preg_match('/^v(\d+)\.(\d+)\.(\d+)$/si', $value->name, $regs)) {
-			if ($regs[1] != '5' && $regs[1] != '6') {
+			if ($regs[1] != '6') {
 				echo "Warning: Ignoring version ".$regs[1].'.'.$regs[2].'.'.$regs[3]." which has an unsupported major version!\n";
 				continue;
 			}
@@ -110,11 +105,7 @@ function fetchFiles($versions, $targetPath) {
 		
 		echo "Fetching files for version ".$version['full']."...\n";
 		$baseUrl = makeBaseUrl($version['major'], $version['minor'], $version['patch']);
-		if ($version['major'] == 6 || $version['minor'] >= 1) {
-			$header = fetchFile($baseUrl .'/'. 'qsql_sqlite_p.h');
-		} else {
-			$header = fetchFile($baseUrl .'/'. 'qsql_sqlite.h');
-		}
+		$header = fetchFile($baseUrl .'/'. 'qsql_sqlite_p.h');
 		$source = fetchFile($baseUrl .'/'. 'qsql_sqlite.cpp');
 		
 		file_put_contents($targetPath.'/'.$version['full'].'/qsql_sqlite_p.h', $header);
@@ -136,7 +127,7 @@ while ($hasNext) {
 	$versions = array_merge($versions, extractVersions($decodedJsonData));
 }
 
-echo "Now fetching files for ".count($versions)." versions of Qt 5/6.\n";
+echo "Now fetching files for ".count($versions)." versions of Qt 6.\n";
 fetchFiles($versions, '.');
 
 echo "Done.\n";
